@@ -15,6 +15,8 @@ def score(logits, labels):
     assert logits.dim() == 2
     assert labels.dim() == 1
     assert logits.shape[0] == labels.shape[0]
+    print(logits.get_device())
+    print(labels.get_device())
     y = torch.argmax(logits, dim=-1) == labels
     y = y.type(torch.float)
     return torch.mean(y).item()
