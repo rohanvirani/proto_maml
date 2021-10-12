@@ -175,10 +175,16 @@ class ProtoNet:
             
             #compute softmax of distance table [NQ x N] to get probabilites for each query example across all classes
             query_softmax = F.softmax(query_distances, dim=1)
+
+            labels_support_copy = labels_support.detach().clone()
+            labels_query_copy = labels_query.detach().clone()
+
+            print(labels_support_copy.get_device())
+            print(labels_query_copy.get_device())
             
             #compute util.accuracies on above two distance tables for accuracies
-            support_acc = util.score(support_softmax, labels_support.detach().clone())
-            query_acc = util.score(query_softmax, labels_query.detach().clone())
+            support_acc = util.score(support_softmax, labels_support_copy)
+            query_acc = util.score(query_softmax, labels_query_copy)
             #append accuracies to above two lists
 
             accuracy_support_batch.append(support_acc)
