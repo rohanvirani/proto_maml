@@ -127,6 +127,7 @@ class ProtoNet:
             
             #map images_support to feature space [NKx64]
             images_support_mapping = self._network.forward(images_support)
+            print('support map', images_support_mapping.get_device())
             
             
             #calculate N prototypes looped through the labels_support data 
@@ -148,10 +149,12 @@ class ProtoNet:
                 assert(count==K)
             
             prototypes = torch.stack(prototypes)
+            print('proto', prototypes.get_device())
             
             
             #map images_query to feature space [NQx64]
             images_query_mapping = self._network.forward(images_query)
+            print('images map',images_query_mapping.get_device())
             
             #calculate distance between images_support and all prototypes [NK x N]
             support_distances = torch.zeros(N*K, N)
@@ -160,6 +163,8 @@ class ProtoNet:
                     support_distances[i,j] = torch.dist(images_support_mapping[i], prototypes[j], 2) ** 2
             
             support_distances = torch.Tensor(support_distances)
+
+            print('support distance', support_distances.get_device())
             
 
             #calculate distance between images_query and all prototypes [NQ x N]
@@ -170,6 +175,8 @@ class ProtoNet:
             
             query_distances = torch.Tensor(query_distances)
 
+            print('query distance', query_distances.get_device())
+
             #compute softmax of distance table [NK x N] to get probabilites for each support example across all classes
             support_softmax = F.softmax(support_distances, dim=1)
             
@@ -178,6 +185,7 @@ class ProtoNet:
 
             labels_support_copy = labels_support.detach().clone()
             labels_query_copy = labels_query.detach().clone()
+            
 
             print(labels_support_copy.get_device())
             print(labels_query_copy.get_device())
