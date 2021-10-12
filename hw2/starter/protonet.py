@@ -169,15 +169,12 @@ class ProtoNet:
                     query_distances[i,j] = torch.dist(images_query_mapping[i], prototypes[j], 2) ** 2
             
             query_distances = torch.Tensor(query_distances)
-            
-            support_dist_copy = support_distances.detach().clone()
-            query_dist_copy = query_distances.detach().clone()
 
             #compute softmax of distance table [NK x N] to get probabilites for each support example across all classes
-            support_softmax = F.softmax(support_dist_copy, dim=1)
+            support_softmax = F.softmax(support_distances, dim=1)
             
             #compute softmax of distance table [NQ x N] to get probabilites for each query example across all classes
-            query_softmax = F.softmax(query_dist_copy, dim=1)
+            query_softmax = F.softmax(query_distances, dim=1)
             
             #compute util.accuracies on above two distance tables for accuracies
             support_acc = util.score(support_softmax, labels_support)
