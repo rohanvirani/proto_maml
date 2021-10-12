@@ -167,18 +167,18 @@ class ProtoNet:
             
             query_distances = torch.Tensor(query_distances)
 
+            support_distances = support_distances.to(DEVICE)
+            query_distances = query_distances.to(DEVICE)
+
             #compute softmax of distance table [NK x N] to get probabilites for each support example across all classes
             support_softmax = F.softmax(support_distances, dim=1)
             
             #compute softmax of distance table [NQ x N] to get probabilites for each query example across all classes
             query_softmax = F.softmax(query_distances, dim=1)
-
-            labels_support_copy = labels_support.detach().clone().cpu()
-            labels_query_copy = labels_query.detach().clone().cpu()
             
             #compute util.accuracies on above two distance tables for accuracies
-            support_acc = util.score(support_softmax, labels_support_copy)
-            query_acc = util.score(query_softmax, labels_query_copy)
+            support_acc = util.score(support_softmax, labels_support)
+            query_acc = util.score(query_softmax, labels_query)
             #append accuracies to above two lists
 
             accuracy_support_batch.append(support_acc)
@@ -186,7 +186,7 @@ class ProtoNet:
             
             #append cross entropy loss for this batch 
             
-            loss = F.cross_entropy(query_distances, labels_query_copy)
+            loss = F.cross_entropy(query_distances, labels_query)
             loss_batch.append(loss)
 
 
