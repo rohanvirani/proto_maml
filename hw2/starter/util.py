@@ -11,7 +11,8 @@ def score(logits, labels):
         labels (torch.Tensor): classification labels from 0 to num_classes - 1
             shape (examples,)
     """
-
+    print(logits.get_device())
+    print(labels.get_device())
     assert logits.dim() == 2
     assert labels.dim() == 1
     assert logits.shape[0] == labels.shape[0]
