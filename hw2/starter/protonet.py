@@ -200,7 +200,7 @@ class ProtoNet:
             
             #append cross entropy loss for this batch 
             
-            loss = F.cross_entropy(query_distances, labels_query)
+            loss = F.cross_entropy(query_distances, labels_query_copy)
             loss_batch.append(loss)
 
 
