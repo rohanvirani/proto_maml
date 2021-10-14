@@ -169,6 +169,17 @@ class MAML:
             k: torch.clone(v)
             for k, v in self._meta_parameters.items()
         }
+
+        for i in range(self._num_inner_steps):
+            logits = self._forward(images, parameters)
+            accuracies.append(util.score(logits,labels))
+            loss = F.cross_entropy(logits, labels)
+            for k in parameters.keys():
+                
+                parameters[k] = parameters[k] - self._inner_lrs[k] * torch.autograd.grad(loss, parameters[k],create_graph=train, retain_graph=True)[0] 
+        
+        logits = self._forward(images, parameters)
+        accuracies.append(util.score(logits,labels))
         # ********************************************************
         # ******************* YOUR CODE HERE *********************
         # ********************************************************
@@ -208,6 +219,20 @@ class MAML:
             labels_support = labels_support.to(DEVICE)
             images_query = images_query.to(DEVICE)
             labels_query = labels_query.to(DEVICE)
+
+            parameters, accuracies_support = self._inner_loop(images_support, labels_support, train)
+            query_logits = self._forward(images_query, parameters)
+            query_accuracy = util.score(query_logits, labels_query)
+            outer_loss = F.cross_entropy(query_logits, labels_query)
+            
+            if train:
+                self._optimizer.zero_grad()
+                outer_loss.backward(retain_graph=True)
+                self._optimizer.step()
+
+            outer_loss_batch.append(outer_loss)
+            accuracies_support_batch.append(accuracies_support)
+            accuracy_query_batch.append(query_accuracy)
             # ********************************************************
             # ******************* YOUR CODE HERE *********************
             # ********************************************************

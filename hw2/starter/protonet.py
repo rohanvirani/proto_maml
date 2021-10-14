@@ -135,8 +135,8 @@ class ProtoNet:
             for i in range(N):
                 sum = None
                 count = 0
-                for j in labels_support:
-                    if j == i:
+                for j in range(N*K):
+                    if labels_support[j] == i:
                         if sum == None:
                             sum = images_support_mapping[j,:]
                             count += 1
@@ -146,7 +146,7 @@ class ProtoNet:
                 prototypes.append(sum/count) #[N x 64]
                 assert(count==K)
             
-            prototypes = torch.stack(prototypes)   
+            prototypes = torch.stack(prototypes)  
 
             
             #map images_query to feature space [NQx64]
@@ -157,18 +157,16 @@ class ProtoNet:
             support_distances = torch.zeros(N*K, N)
             for i in range(N*K):
                 for j in range(N):
-                    support_distances[i,j] = torch.dist(images_support_mapping[i], prototypes[j], 2) ** 2
+                    support_distances[i,j] = torch.dist(images_support_mapping[i,:], prototypes[j,:], 2) ** 2
             
-            support_distances = torch.Tensor(support_distances)
             support_distances = support_distances.neg()
 
             #calculate distance between images_query and all prototypes [NQ x N]
             query_distances = torch.zeros(N*Q, N)
             for i in range(N*Q):
                 for j in range(N):
-                    query_distances[i,j] = torch.dist(images_query_mapping[i], prototypes[j], 2) ** 2
+                    query_distances[i,j] = torch.dist(images_query_mapping[i,:], prototypes[j,:], 2) ** 2
             
-            query_distances = torch.Tensor(query_distances)
             query_distances = query_distances.neg()
 
 
