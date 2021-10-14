@@ -224,11 +224,6 @@ class MAML:
             query_logits = self._forward(images_query, parameters)
             query_accuracy = util.score(query_logits, labels_query)
             outer_loss = F.cross_entropy(query_logits, labels_query)
-            
-            if train:
-                self._optimizer.zero_grad()
-                outer_loss.backward(retain_graph=True)
-                self._optimizer.step()
 
             outer_loss_batch.append(outer_loss)
             accuracies_support_batch.append(accuracies_support)
