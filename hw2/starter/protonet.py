@@ -126,12 +126,12 @@ class ProtoNet:
             
             
             #map images_support to feature space [NKx64]
-            images_support_mapping = self._network.forward(images_support)            
+            images_support_mapping = self._network.forward(images_support)   
             
             #calculate N prototypes looped through the labels_support data 
 
             prototypes = []
-            
+          
             for i in range(N):
                 sum = None
                 count = 0
@@ -146,10 +146,12 @@ class ProtoNet:
                 prototypes.append(sum/count) #[N x 64]
                 assert(count==K)
             
-            prototypes = torch.stack(prototypes)            
+            prototypes = torch.stack(prototypes)   
+
             
             #map images_query to feature space [NQx64]
             images_query_mapping = self._network.forward(images_query)
+
             
             #calculate distance between images_support and all prototypes [NK x N]
             support_distances = torch.zeros(N*K, N)
@@ -157,7 +159,8 @@ class ProtoNet:
                 for j in range(N):
                     support_distances[i,j] = torch.dist(images_support_mapping[i], prototypes[j], 2) ** 2
             
-            support_distances = torch.Tensor(support_distances)            
+            support_distances = torch.Tensor(support_distances)
+            support_distances = support_distances.neg()
 
             #calculate distance between images_query and all prototypes [NQ x N]
             query_distances = torch.zeros(N*Q, N)
@@ -166,19 +169,15 @@ class ProtoNet:
                     query_distances[i,j] = torch.dist(images_query_mapping[i], prototypes[j], 2) ** 2
             
             query_distances = torch.Tensor(query_distances)
+            query_distances = query_distances.neg()
+
 
             support_distances = support_distances.to(DEVICE)
             query_distances = query_distances.to(DEVICE)
-
-            #compute softmax of distance table [NK x N] to get probabilites for each support example across all classes
-            support_softmax = F.softmax(support_distances, dim=1)
-            
-            #compute softmax of distance table [NQ x N] to get probabilites for each query example across all classes
-            query_softmax = F.softmax(query_distances, dim=1)
             
             #compute util.accuracies on above two distance tables for accuracies
-            support_acc = util.score(support_softmax, labels_support)
-            query_acc = util.score(query_softmax, labels_query)
+            support_acc = util.score(support_distances, labels_support)
+            query_acc = util.score(query_distances, labels_query)
             #append accuracies to above two lists
 
             accuracy_support_batch.append(support_acc)
@@ -406,7 +405,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('Train a ProtoNet!')
     parser.add_argument('--log_dir', type=str, default=None,
                         help='directory to save to or load from')
-    parser.add_argument('--num_way', type=int, default=4,
+    parser.add_argument('--num_way', type=int, default=5,
                         help='number of classes in a task')
     parser.add_argument('--num_support', type=int, default=5,
                         help='number of support examples per class in a task')
